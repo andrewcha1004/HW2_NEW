@@ -39,3 +39,25 @@ jobs:
           # 빌드 캐시를 활용하여 속도 향상
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy to Self-hosted Runner
+    needs: build-and-push
+    runs-on: self-hosted  # 사용자의 컴퓨터(Self-hosted Runner)에서 실행
+
+    steps:
+      - name: Pull Latest Image
+        run: docker pull ${{ secrets.DOCKERHUB_USERNAME }}/ocr-api:latest
+
+      - name: Stop and Remove Existing Container
+        run: |
+          docker stop ocr-api || true
+          docker rm ocr-api || true
+
+      - name: Run New Container
+        run: |
+          docker run -d \
+            --name ocr-api \
+            -p 8000:8000 \
+            --restart always \
+            ${{ secrets.DOCKERHUB_USERNAME }}/ocr-api:latest

@@ -9,8 +9,12 @@
 ```
 HW2/
 ├── main.py              # FastAPI 앱 진입점, 미들웨어, lifespan
+├── Dockerfile           # Docker 빌드 설정 (최적화됨)
+├── .dockerignore        # Docker 빌드 제외 목록
 ├── requirements.txt     # 의존성 패키지
-├── .env.example         # 환경변수 템플릿 (.env로 복사해서 사용)
+├── .env.example         # 환경변수 템플릿
+├── .github/workflows/
+│   └── ci.yml          # GitHub Actions CI/CD 워크플로우 (Self-hosted 배포 포함)
 └── app/
     ├── __init__.py
     ├── config.py        # pydantic-settings 기반 설정
@@ -18,6 +22,25 @@ HW2/
     ├── router.py        # /ocr/extract 엔드포인트
     └── schemas.py       # 요청/응답 Pydantic 스키마
 ```
+
+---
+
+## 🐳 Docker & CI/CD 설정
+
+이미지를 빌드하고 로컬 컴퓨터에 자동으로 배포하는 설정이 포함되어 있습니다.
+
+### 1. 로컬에서 Docker 빌드 및 실행
+```bash
+docker build -t ocr-api .
+docker run -p 8000:8000 ocr-api
+```
+
+### 2. GitHub Actions 자동 배포 (CD)
+GitHub 리포지토리에 코드를 push하면 다음 과정이 자동으로 진행됩니다:
+1. **CI**: Docker Hub로 최신 이미지를 빌드하여 push.
+2. **CD**: 사용자 컴퓨터(Self-hosted Runner)에서 최신 이미지를 pull하고 컨테이너를 재시작.
+
+> **필수 설정**: GitHub Secrets에 `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN`을 등록해야 합니다.
 
 ---
 
