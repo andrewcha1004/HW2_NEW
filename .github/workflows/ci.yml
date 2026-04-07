@@ -51,6 +51,16 @@ jobs:
 
       - name: Stop and Remove Existing Container
         run: |
+          # 1. 8000번 포트를 점유하고 있는 모든 컨테이너 ID 찾기
+          CONTAINER_IDS=$(docker ps -q --filter "publish=8000")
+          
+          if [ ! -z "$CONTAINER_IDS" ]; then
+            echo "Port 8000 is occupied by container(s): $CONTAINER_IDS. Stopping..."
+            docker stop $CONTAINER_IDS || true
+            docker rm $CONTAINER_IDS || true
+          fi
+
+          # 2. 이름기반으로도 추가 확인 (혹시 모르니)
           docker stop ocr-api || true
           docker rm ocr-api || true
 
