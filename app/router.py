@@ -1,7 +1,10 @@
+import io
 import logging
 from typing import Annotated
 
 from fastapi import APIRouter, File, HTTPException, UploadFile, status
+from fastapi.responses import StreamingResponse
+from gtts import gTTS
 
 from app.config import settings
 from app.ocr_engine import ocr_engine
@@ -98,3 +101,38 @@ async def extract_text(
         language=result["language"],
         total_blocks=len(result["blocks"]),
     )
+
+
+@router.post("/tts", summary="텍스트를 음성으로 변환")
+async def text_to_speech(
+    text: Annotated[str, File(description="음성으로 변환할 텍스트")],
+) -> StreamingResponse:
+    """
+    전달받은 텍스트를 gTTS를 이용해 음성(MP3)으로 변환하여 스트리밍합니다.
+    """
+    if not text.strip():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="변환할 텍스트가 없습니다.",
+        )
+
+    try:
+        # 한국어 우선, 영어 포함 (gTTS는 단일 언어 설정이 기본이나 ko가 en도 무난히 읽음)
+        tts = gTTS(text=text, lang="ko")
+        
+        # 메모리 버퍼에 저장
+        mp3_fp = io.BytesIO()
+        tts.write_to_fp(mp3_fp)
+        mp3_fp.seek(0)
+
+        return StreamingResponse(
+            mp3_fp,
+            media_type="audio/mpeg",
+            headers={"Content-Disposition": "attachment; filename=speech.mp3"},
+        )
+    except Exception as e:
+        logger.error(f"TTS 생성 중 오류: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER__ERROR,
+            detail=f"음성 변환에 실패했습니다: {str(e)}",
+        )

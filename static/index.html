@@ -383,14 +383,21 @@
             <div class="result-block">
                 <div class="block-header">
                     <span><i data-lucide="file-text" style="width:14px; margin-right:4px;"></i> 전체 텍스트</span>
-                    <button class="copy-btn" id="copy-btn" title="클립보드에 복사">
-                        <i data-lucide="copy" style="width:16px;"></i>
-                    </button>
+                    <div style="display: flex; gap: 0.5rem">
+                        <button class="copy-btn" id="tts-btn" title="음성으로 듣기">
+                            <i data-lucide="volume-2" style="width:16px;"></i>
+                        </button>
+                        <button class="copy-btn" id="copy-btn" title="클립보드에 복사">
+                            <i data-lucide="copy" style="width:16px;"></i>
+                        </button>
+                    </div>
                 </div>
                 <div class="text-area" id="res-full">이미지를 업로드하고 분석을 진행해 주세요.</div>
             </div>
         </section>
     </main>
+
+    <audio id="audio-player" style="display: none"></audio>
 
     <footer>
         &copy; 2026 AI OCR Premium | MLOps Dev Pipeline
@@ -411,6 +418,8 @@
         const resFull = document.getElementById('res-full');
         const resSummary = document.getElementById('res-summary');
         const copyBtn = document.getElementById('copy-btn');
+        const ttsBtn = document.getElementById('tts-btn');
+        const audioPlayer = document.getElementById('audio-player');
 
         let selectedFile = null;
 
@@ -460,7 +469,6 @@
                 if (data.success) {
                     resFull.textContent = data.full_text || "인식된 텍스트가 없습니다.";
                     resSummary.textContent = data.summary || "요약할 수 없습니다.";
-                    // 아이콘 업데이트 (결과 나왔을 때 색상 변경 등 효과 줄 수 있음)
                 } else {
                     alert('오류: ' + (data.detail || data.error));
                 }
@@ -469,6 +477,40 @@
             } finally {
                 loading.style.display = 'none';
                 extractBtn.disabled = false;
+            }
+        };
+
+        ttsBtn.onclick = async () => {
+            const text = resFull.textContent;
+            if (!text || text.includes('업로드하고')) return;
+
+            ttsBtn.disabled = true;
+            const originalIcon = ttsBtn.innerHTML;
+            ttsBtn.innerHTML = '<div class="spinner" style="width:16px; height:16px; border-width:2px"></div>';
+
+            try {
+                const formData = new FormData();
+                formData.append('text', text);
+
+                const response = await fetch('/ocr/tts', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = URL.createObjectURL(blob);
+                    audioPlayer.src = url;
+                    audioPlayer.play();
+                } else {
+                    alert('TTS 생성 실패');
+                }
+            } catch (err) {
+                alert('통신 오류');
+            } finally {
+                ttsBtn.innerHTML = originalIcon;
+                lucide.createIcons();
+                ttsBtn.disabled = false;
             }
         };
 
