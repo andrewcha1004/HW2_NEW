@@ -3,218 +3,298 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI OCR Text Extractor</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <title>Premium AI OCR Tool</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <!-- Lucide Icons (CDN) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         :root {
-            --primary: #6366f1;
-            --primary-hover: #4f46e5;
-            --bg: #0f172a;
-            --card-bg: rgba(30, 41, 59, 0.7);
-            --text: #f8fafc;
-            --text-muted: #94a3b8;
-            --border: rgba(255, 255, 255, 0.1);
-            --accent: #10b981;
+            --primary: #8b5cf6;
+            --primary-glow: rgba(139, 92, 246, 0.5);
+            --secondary: #10b981;
+            --bg-dark: #020617;
+            --card-glass: rgba(15, 23, 42, 0.8);
+            --border-glass: rgba(255, 255, 255, 0.1);
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --font-main: 'Outfit', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            cursor: default;
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            line-height: 1.6;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: var(--font-main);
             min-height: 100vh;
+            overflow-x: hidden;
             display: flex;
             flex-direction: column;
             align-items: center;
-            background-image: 
-                radial-gradient(circle at 0% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
-                radial-gradient(circle at 100% 100%, rgba(16, 185, 129, 0.1) 0%, transparent 50%);
+        }
+
+        /* Ambient Background Background */
+        .ambient-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(139, 92, 246, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(16, 185, 129, 0.1) 0%, transparent 40%);
         }
 
         header {
             width: 100%;
-            padding: 2rem;
+            padding: 3rem 1rem;
             text-align: center;
-            border-bottom: 1px solid var(--border);
-            backdrop-filter: blur(10px);
-            margin-bottom: 3rem;
+            max-width: 800px;
+        }
+
+        .badge {
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 0.4rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            margin-bottom: 1.5rem;
+            display: inline-block;
         }
 
         h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            background: linear-gradient(to right, #818cf8, #34d399);
+            font-size: 3.5rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 0.5rem;
         }
 
-        .container {
-            width: 90%;
-            max-width: 1200px;
+        header p {
+            color: var(--text-dim);
+            font-size: 1.25rem;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .main-grid {
+            width: 100%;
+            max-width: 1300px;
+            padding: 0 2rem 4rem;
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
-            margin-bottom: 4rem;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 2.5rem;
+            align-items: start;
         }
 
-        @media (max-width: 900px) {
-            .container {
+        @media (max-width: 1024px) {
+            .main-grid {
                 grid-template-columns: 1fr;
             }
         }
 
-        .card {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 1.5rem;
-            padding: 2rem;
-            backdrop-filter: blur(20px);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            transition: transform 0.3s ease;
+        /* Card Styles */
+        .glass-card {
+            background: var(--card-glass);
+            border: 1px solid var(--border-glass);
+            border-radius: 2rem;
+            backdrop-filter: blur(24px);
+            padding: 2.5rem;
+            box-shadow: 0 4px 60px rgba(0, 0, 0, 0.5);
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
         }
 
-        .upload-zone {
-            border: 2px dashed var(--border);
-            border-radius: 1rem;
-            padding: 3rem;
+        .section-title {
             display: flex;
-            flex-direction: column;
             align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+            font-size: 1.5rem;
+            font-weight: 600;
         }
 
-        .upload-zone:hover, .upload-zone.dragover {
-            border-color: var(--primary);
-            background: rgba(99, 102, 241, 0.05);
-        }
-
-        .upload-zone svg {
-            width: 4rem;
-            height: 4rem;
+        .section-title i {
             color: var(--primary);
-            margin-bottom: 1rem;
         }
 
-        .upload-zone p {
-            color: var(--text-muted);
-            font-size: 1.1rem;
+        /* Upload Area */
+        .upload-wrapper {
+            position: relative;
         }
 
-        #file-input {
+        #drop-zone {
+            border: 2px dashed rgba(255, 255, 255, 0.1);
+            border-radius: 1.5rem;
+            padding: 4rem 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.02);
+            position: relative;
+        }
+
+        #drop-zone.dragover {
+            border-color: var(--primary);
+            background: rgba(139, 92, 246, 0.05);
+            transform: scale(1.02);
+        }
+
+        #drop-zone i {
+            width: 48px;
+            height: 48px;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+        }
+
+        .preview-container {
+            margin-top: 1.5rem;
             display: none;
+            position: relative;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
         }
 
         #preview-img {
-            max-width: 100%;
-            max-height: 400px;
-            border-radius: 0.5rem;
-            display: none;
-            margin-top: 1rem;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            display: block;
+            width: 100%;
+            max-height: 500px;
+            object-fit: contain;
+            background: #000;
         }
 
-        .btn {
-            background: var(--primary);
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, #6d28d9 100%);
             color: white;
             border: none;
-            padding: 0.75rem 2rem;
-            border-radius: 0.75rem;
-            font-weight: 600;
-            font-size: 1rem;
+            padding: 1.2rem 2rem;
+            border-radius: 1rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+            width: 100%;
+            margin-top: 2rem;
             cursor: pointer;
             transition: all 0.3s ease;
-            margin-top: 1.5rem;
-            width: 100%;
+            box-shadow: 0 10px 20px -5px var(--primary-glow);
         }
 
-        .btn:hover {
-            background: var(--primary-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.4);
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px -5px var(--primary-glow);
         }
 
-        .btn:disabled {
-            background: var(--text-muted);
+        .btn-primary:active:not(:disabled) {
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
             cursor: not-allowed;
-            transform: none;
+            filter: grayscale(1);
         }
 
-        .results-section {
+        /* Results Area */
+        .result-card {
             display: flex;
             flex-direction: column;
-            gap: 1.5rem;
+            gap: 2rem;
         }
 
-        .result-group {
-            animation: fadeIn 0.5s ease-out forwards;
+        .result-block {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        .block-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .label {
-            font-size: 0.8rem;
+        .block-header span {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--secondary);
             text-transform: uppercase;
             letter-spacing: 0.1em;
-            color: var(--accent);
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            display: block;
         }
 
-        .content-box {
-            background: rgba(15, 23, 42, 0.5);
-            border: 1px solid var(--border);
-            border-radius: 0.75rem;
-            padding: 1.25rem;
+        .copy-btn {
+            background: transparent;
+            border: 1px solid var(--border-glass);
+            color: var(--text-dim);
+            padding: 0.4rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .text-area {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-glass);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: #cbd5e1;
             min-height: 100px;
-            max-height: 300px;
+            max-height: 400px;
             overflow-y: auto;
             white-space: pre-wrap;
-            font-size: 0.95rem;
-            color: #e2e8f0;
         }
 
-        .summary-box {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(99, 102, 241, 0.1));
-            border-left: 4px solid var(--accent);
-            font-style: italic;
+        .summary-area {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(139, 92, 246, 0.05) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: #d1fae5;
+            font-family: var(--font-main);
+            font-size: 1.1rem;
+            font-weight: 500;
         }
 
-        .loading-overlay {
+        /* Loading Animation */
+        .loader-overlay {
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(15, 23, 42, 0.8);
+            inset: 0;
+            background: rgba(2, 6, 23, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 50;
             display: none;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            z-index: 10;
-            border-radius: 1rem;
+            border-radius: 2rem;
         }
 
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid rgba(255, 255, 255, 0.1);
-            border-top: 4px solid var(--primary);
+        .loader {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(139, 92, 246, 0.2);
             border-radius: 50%;
-            animation: spin 1s linear infinite;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 1rem;
         }
 
         @keyframes spin {
@@ -222,79 +302,123 @@
         }
 
         footer {
-            margin-top: auto;
-            padding: 2rem;
-            color: var(--text-muted);
+            padding: 4rem;
+            color: var(--text-dim);
             font-size: 0.9rem;
+            text-align: center;
         }
 
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
     </style>
 </head>
 <body>
+    <div class="ambient-bg"></div>
 
     <header>
-        <h1>AI Text Extractor</h1>
-        <p style="color: var(--text-muted)">이미지 속 텍스트를 인식하고 스마트하게 요약합니다.</p>
+        <div class="badge">OCR v2.0 NEW GENERATION</div>
+        <h1>Intelligence in Vision.</h1>
+        <p>인공지능 기반의 고성능 텍스트 인식 엔진으로 이미지 속 가치를 추출하세요.</p>
     </header>
 
-    <div class="container">
-        <!-- 업로드 섹션 -->
-        <div class="card">
-            <h2 style="margin-bottom: 1.5rem">이미지 업로드</h2>
-            <div class="upload-zone" id="drop-zone">
-                <div class="loading-overlay" id="loading">
-                    <div class="spinner"></div>
-                </div>
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
-                </svg>
-                <p id="upload-status">파일을 드래그하거나 클릭하여 선택하세요</p>
-                <img id="preview-img" alt="미리보기">
+    <main class="main-grid">
+        <!-- Left: Upload & Input -->
+        <section class="glass-card shadow-lg">
+            <div class="section-title">
+                <i data-lucide="image-plus"></i>
+                이미지 입력
             </div>
-            <input type="file" id="file-input" accept="image/*">
-            <button class="btn" id="extract-btn" disabled>텍스트 추출하기</button>
-        </div>
-
-        <!-- 결과 섹션 -->
-        <div class="card results-section">
-            <h2 style="margin-bottom: 0.5rem">인식 결과</h2>
             
-            <div class="result-group">
-                <span class="label">✨ 스마트 요약</span>
-                <div class="content-box summary-box" id="res-summary">분석 전입니다.</div>
+            <div class="upload-wrapper">
+                <div class="loader-overlay" id="loading">
+                    <div class="loader"></div>
+                    <p>분석 중...</p>
+                </div>
+                
+                <div id="drop-zone">
+                    <i data-lucide="upload-cloud"></i>
+                    <p id="zone-text" style="font-size: 1.1rem; color: #fff; margin-bottom: 0.5rem">파일을 여기로 드래그하세요</p>
+                    <p style="font-size: 0.9rem; color: var(--text-dim)">또는 클릭하여 내 컴퓨터에서 선택 (JPG, PNG, WebP)</p>
+                </div>
+
+                <div class="preview-container" id="preview-wrapper">
+                    <img id="preview-img" src="" alt="준비된 이미지">
+                </div>
             </div>
 
-            <div class="result-group">
-                <span class="label">📄 전체 텍스트</span>
-                <div class="content-box" id="res-full">이미지를 업로드하고 추출 버튼을 눌러주세요.</div>
+            <input type="file" id="file-input" style="display: none" accept="image/*">
+            <button class="btn-primary" id="extract-btn" disabled>
+                분석 시작하기
+            </button>
+        </section>
+
+        <!-- Right: Enhanced Results -->
+        <section class="glass-card result-card">
+            <div class="section-title">
+                <i data-lucide="sparkles"></i>
+                인식 결과
             </div>
-        </div>
-    </div>
+
+            <!-- Summary Section First for emphasis -->
+            <div class="result-block">
+                <div class="block-header">
+                    <span><i data-lucide="wand-2" style="width:14px; margin-right:4px;"></i> 스마트 요약</span>
+                </div>
+                <div class="text-area summary-area" id="res-summary">분석 전입니다.</div>
+            </div>
+
+            <!-- Full Text Section -->
+            <div class="result-block">
+                <div class="block-header">
+                    <span><i data-lucide="file-text" style="width:14px; margin-right:4px;"></i> 전체 텍스트</span>
+                    <button class="copy-btn" id="copy-btn" title="클립보드에 복사">
+                        <i data-lucide="copy" style="width:16px;"></i>
+                    </button>
+                </div>
+                <div class="text-area" id="res-full">이미지를 업로드하고 분석을 진행해 주세요.</div>
+            </div>
+        </section>
+    </main>
 
     <footer>
-        &copy; 2026 OCR API Server | Designed for Premium Experience
+        &copy; 2026 AI OCR Premium | MLOps Dev Pipeline
     </footer>
 
     <script>
+        // Lucide 아이콘 초기화
+        lucide.createIcons();
+
         const dropZone = document.getElementById('drop-zone');
         const fileInput = document.getElementById('file-input');
+        const previewWrapper = document.getElementById('preview-wrapper');
         const previewImg = document.getElementById('preview-img');
+        const zoneText = document.getElementById('zone-text');
         const extractBtn = document.getElementById('extract-btn');
         const loading = document.getElementById('loading');
+        
         const resFull = document.getElementById('res-full');
         const resSummary = document.getElementById('res-summary');
-        const uploadStatus = document.getElementById('upload-status');
+        const copyBtn = document.getElementById('copy-btn');
 
         let selectedFile = null;
 
-        // 클릭 시 선택
+        // Interaction
         dropZone.onclick = () => fileInput.click();
+        fileInput.onchange = (e) => handleFiles(e.target.files);
 
-        // 드래그 앤 드롭
-        dropZone.ondragover = (e) => {
-            e.preventDefault();
-            dropZone.classList.add('dragover');
-        };
+        dropZone.ondragover = (e) => { e.preventDefault(); dropZone.classList.add('dragover'); };
         dropZone.ondragleave = () => dropZone.classList.remove('dragover');
         dropZone.ondrop = (e) => {
             e.preventDefault();
@@ -302,17 +426,14 @@
             handleFiles(e.dataTransfer.files);
         };
 
-        fileInput.onchange = (e) => handleFiles(e.target.files);
-
         function handleFiles(files) {
             if (files.length > 0) {
                 selectedFile = files[0];
-                uploadStatus.style.display = 'none';
-                
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     previewImg.src = e.target.result;
-                    previewImg.style.display = 'block';
+                    previewWrapper.style.display = 'block';
+                    dropZone.style.display = 'none'; // 업로드 후 구역 숨기기 (더 깔끔함)
                     extractBtn.disabled = false;
                 };
                 reader.readAsDataURL(selectedFile);
@@ -337,18 +458,33 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    resFull.textContent = data.full_text || "텍스트를 찾을 수 없습니다.";
-                    resSummary.textContent = data.summary || "요약할 내용이 없습니다.";
+                    resFull.textContent = data.full_text || "인식된 텍스트가 없습니다.";
+                    resSummary.textContent = data.summary || "요약할 수 없습니다.";
+                    // 아이콘 업데이트 (결과 나왔을 때 색상 변경 등 효과 줄 수 있음)
                 } else {
-                    alert('오류 발생: ' + (data.detail || data.error));
+                    alert('오류: ' + (data.detail || data.error));
                 }
-            } catch (error) {
-                console.error(error);
-                alert('서버와 통신하는 중 오류가 발생했습니다.');
+            } catch (err) {
+                alert('서버 통신 실패');
             } finally {
                 loading.style.display = 'none';
                 extractBtn.disabled = false;
             }
+        };
+
+        copyBtn.onclick = () => {
+            const text = resFull.textContent;
+            if (!text || text.includes('업로드하고')) return;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const originalIcon = copyBtn.innerHTML;
+                copyBtn.innerHTML = '<i data-lucide="check" style="width:16px; color:var(--secondary)"></i>';
+                lucide.createIcons();
+                setTimeout(() => {
+                    copyBtn.innerHTML = originalIcon;
+                    lucide.createIcons();
+                }, 2000);
+            });
         };
     </script>
 </body>
