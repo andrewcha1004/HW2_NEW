@@ -1,0 +1,87 @@
+import logging
+from typing import Annotated
+
+from fastapi import APIRouter, File, HTTPException, UploadFile, status
+
+from app.config import settings
+from app.ocr_engine import ocr_engine
+from app.schemas import ErrorResponse, OCRResponse
+
+logger = logging.getLogger(__name__)
+
+router = APIRouter(prefix="/ocr", tags=["OCR"])
+
+# 허용 MIME 타입
+ALLOWED_CONTENT_TYPES = {
+    "image/jpeg",
+    "image/png",
+    "image/bmp",
+    "image/tiff",
+    "image/webp",
+}
+MAX_BYTES = settings.max_upload_size_mb * 1024 * 1024  # MB → bytes
+
+
+@router.post(
+    "/extract",
+    response_model=OCRResponse,
+    responses={
+        400: {"model": ErrorResponse, "description": "잘못된 파일 형식 또는 크기"},
+        422: {"model": ErrorResponse, "description": "처리 불가 이미지"},
+        500: {"model": ErrorResponse, "description": "서버 내부 오류"},
+    },
+    summary="이미지에서 텍스트 추출",
+    description=(
+        "이미지 파일을 업로드하면 EasyOCR을 사용해 텍스트를 추출합니다.\n\n"
+        "- 지원 형식: JPG, PNG, BMP, TIFF, WebP\n"
+        f"- 최대 파일 크기: {settings.max_upload_size_mb} MB\n"
+        f"- 지원 언어: {', '.join(settings.ocr_languages)}"
+    ),
+)
+async def extract_text(
+    file: Annotated[UploadFile, File(description="텍스트를 추출할 이미지 파일")],
+) -> OCRResponse:
+    # 1. Content-Type 검증
+    if file.content_type not in ALLOWED_CONTENT_TYPES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"지원하지 않는 파일 형식입니다: {file.content_type}. "
+                   f"허용: {', '.join(ALLOWED_CONTENT_TYPES)}",
+        )
+
+    # 2. 파일 읽기 및 크기 검증
+    image_bytes = await file.read()
+    if len(image_bytes) > MAX_BYTES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"파일 크기가 너무 큽니다 ({len(image_bytes) / 1024 / 1024:.1f} MB). "
+                   f"최대 {settings.max_upload_size_mb} MB까지 허용됩니다.",
+        )
+
+    if len(image_bytes) == 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="빈 파일입니다.",
+        )
+
+    # 3. OCR 수행
+    logger.info(f"OCR 시작: {file.filename} ({len(image_bytes)} bytes)")
+    try:
+        result = ocr_engine.extract_text(image_bytes)
+    except Exception as e:
+        logger.error(f"OCR 처리 중 오류: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"이미지 처리에 실패했습니다: {str(e)}",
+        )
+
+    logger.info(f"OCR 완료: {file.filename} → {len(result['blocks'])}개 블록 인식")
+
+    return OCRResponse(
+        success=True,
+        filename=file.filename or "unknown",
+        full_text=result["full_text"],
+        blocks=result["blocks"],
+        language=result["language"],
+        total_blocks=len(result["blocks"]),
+    )

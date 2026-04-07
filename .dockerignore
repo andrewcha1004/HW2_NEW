@@ -1,0 +1,24 @@
+# Python 캐시 제외
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 가상환경 제외
+venv/
+env/
+.venv/
+
+# 환경 변수 제외
+.env
+.env.example
+
+# Git 설정 제외
+.git/
+.gitignore
+
+# 기타 개발용 파일
+.github/
+README.md
+Dockerfile
+.dockerignore
+tests/
