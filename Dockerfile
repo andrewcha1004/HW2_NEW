@@ -11,9 +11,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app
 
 # 시스템 의존성 설치 (EasyOCR/OpenCV 실행에 필요)
-# libgl1-mesa-glx, libglib2.0-0은 OpenCV의 필수 런타임 라이브러리입니다.
+# libgl1, libglx-mesa0은 최신 Debian(Bookworm)에서 libgl1-mesa-glx를 대체합니다.
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libgl1-mesa-glx \
+    libgl1 \
+    libglx-mesa0 \
     libglib2.0-0 \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
