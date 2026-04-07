@@ -77,10 +77,23 @@ async def extract_text(
 
     logger.info(f"OCR 완료: {file.filename} → {len(result['blocks'])}개 블록 인식")
 
+    # 4. 간단한 요약 로직 (첫 2~3문장 또는 일정 길이 추출)
+    full_text = result["full_text"]
+    if not full_text:
+        summary = "인식된 텍스트가 없습니다."
+    else:
+        # 문장 단위로 나누기 (단순 마침표 기준)
+        sentences = [s.strip() for s in full_text.split('.') if s.strip()]
+        if len(sentences) > 2:
+            summary = ". ".join(sentences[:2]) + "..."
+        else:
+            summary = full_text[:200] + ("..." if len(full_text) > 200 else "")
+
     return OCRResponse(
         success=True,
         filename=file.filename or "unknown",
-        full_text=result["full_text"],
+        full_text=full_text,
+        summary=summary,
         blocks=result["blocks"],
         language=result["language"],
         total_blocks=len(result["blocks"]),

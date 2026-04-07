@@ -14,6 +14,7 @@ class OCRResponse(BaseModel):
     success: bool = Field(True, description="처리 성공 여부")
     filename: str = Field(..., description="업로드된 파일명")
     full_text: str = Field(..., description="추출된 전체 텍스트 (공백 구분)")
+    summary: str = Field(..., description="인식된 내용의 간단한 요약")
     blocks: List[BoundingBox] = Field(..., description="개별 텍스트 블록 목록")
     language: List[str] = Field(..., description="사용된 OCR 언어 목록")
     total_blocks: int = Field(..., description="인식된 텍스트 블록 수")

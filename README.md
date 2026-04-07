@@ -77,10 +77,11 @@ uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 python main.py
 ```
 
-### 4. API 문서 확인
-
-- Swagger UI: http://localhost:8000/docs
-- ReDoc: http://localhost:8000/redoc
+### 4. 웹 인터페이스 및 요약 기능 확인
+- **Web UI**: http://localhost:8000 (드래그 앤 드롭 업로드 및 미리보기 지원)
+- **Swagger UI**: http://localhost:8000/docs
+- **ReDoc**: http://localhost:8000/redoc
+- **스마트 요약**: 인식된 텍스트의 핵심 내용을 자동으로 추출하여 UI에 함께 표시합니다.
 
 ---
 

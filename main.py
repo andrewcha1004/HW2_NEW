@@ -5,7 +5,8 @@ from contextlib import asynccontextmanager
 import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
 from app.ocr_engine import ocr_engine
@@ -78,6 +79,15 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 # ── 라우터 등록 ───────────────────────────────────────────────
 app.include_router(router)
+
+# ── 정적 파일 및 UI 제공 ────────────────────────────────────────
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+
+@app.get("/", tags=["UI"], include_in_schema=False)
+async def serve_ui():
+    with open("static/index.html", "r", encoding="utf-8") as f:
+        return HTMLResponse(content=f.read())
 
 
 # ── 헬스체크 ──────────────────────────────────────────────────

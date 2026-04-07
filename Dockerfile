@@ -27,8 +27,9 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir torch==2.2.2 torchvision==0.17.2 --index-url https://download.pytorch.org/whl/cpu && \
     pip install --no-cache-dir -r requirements.txt
 
-# 소스 코드 복사
+# 소스 코드 및 정적 파일 복사
 COPY . .
+# static 폴더가 명시적으로 복사되도록 확인 (COPY . . 에 포함되지만 명확성을 위해)
 
 # 모델 사전 다운로드 (컨테이너 실행 시 지연 방지)
 # 한국어(ko)와 영어(en) 모델을 빌드 시점에 미리 다운로드합니다.
